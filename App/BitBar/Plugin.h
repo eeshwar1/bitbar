@@ -36,7 +36,7 @@
 - (void) addAdditionalMenuItems:(NSMenu *)menu;
 - (void) addDefaultMenuItems:(NSMenu *)menu;
 
-- (void)performRefreshNow;
+- (void) performRefreshNow;
 - (BOOL) refresh;
 - (void) cycleLines;
 - (void) contentHasChanged;

@@ -5,3 +5,4 @@
 #import "Plugin.h"
 #import "PluginManager.h"
 #import "NSTask+useSystemProxies.h"
+#import "NSUserDefaults+Settings.h"

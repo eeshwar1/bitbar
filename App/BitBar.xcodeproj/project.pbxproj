@@ -47,6 +47,7 @@
 		36DCD8D31C76027C004DE286 /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 05DB995B1C3D4B80008B5159 /* Images.xcassets */; };
 		36DCD8D41C76027C004DE286 /* DateTools.bundle in Resources */ = {isa = PBXBuildFile; fileRef = 7B9A21551B9F0F10002539F7 /* DateTools.bundle */; };
 		65228730253B89B500E143D1 /* SExecutablePlugin.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6522872F253B89B500E143D1 /* SExecutablePlugin.swift */; };
+		65228740253CEC4500E143D1 /* SPlugin.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6522873F253CEC4500E143D1 /* SPlugin.swift */; };
 		7B9A21531B9F0BE6002539F7 /* STPrivilegedTask.m in Sources */ = {isa = PBXBuildFile; fileRef = 7B9A21501B9F0BE6002539F7 /* STPrivilegedTask.m */; };
 		7B9A21651B9F0F10002539F7 /* DateTools.bundle in Resources */ = {isa = PBXBuildFile; fileRef = 7B9A21551B9F0F10002539F7 /* DateTools.bundle */; };
 		7B9A21661B9F0F10002539F7 /* DTConstants.m in Sources */ = {isa = PBXBuildFile; fileRef = 7B9A21581B9F0F10002539F7 /* DTConstants.m */; };
@@ -239,6 +240,7 @@
 		36DCD8D81C76027C004DE286 /* BitBarDistro.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = BitBarDistro.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		6522872E253B89B400E143D1 /* BitBar-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "BitBar-Bridging-Header.h"; sourceTree = "<group>"; };
 		6522872F253B89B500E143D1 /* SExecutablePlugin.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SExecutablePlugin.swift; sourceTree = "<group>"; };
+		6522873F253CEC4500E143D1 /* SPlugin.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SPlugin.swift; sourceTree = "<group>"; };
 		7B5D08F91BA8EF6300400886 /* README.md */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = net.daringfireball.markdown; name = README.md; path = ../../README.md; sourceTree = "<group>"; };
 		7B9A214F1B9F0BE6002539F7 /* STPrivilegedTask.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = STPrivilegedTask.h; path = Vendor/STPrivilegedTask/STPrivilegedTask.h; sourceTree = SOURCE_ROOT; };
 		7B9A21501B9F0BE6002539F7 /* STPrivilegedTask.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = STPrivilegedTask.m; path = Vendor/STPrivilegedTask/STPrivilegedTask.m; sourceTree = SOURCE_ROOT; };
@@ -418,6 +420,7 @@
 				05DAE02C1833274100409786 /* PluginManager.m */,
 				059971941833394500EA6D8D /* Plugin.h */,
 				059971951833394500EA6D8D /* Plugin.m */,
+				6522873F253CEC4500E143D1 /* SPlugin.swift */,
 				A281BDB3189066DE00C380A4 /* ExecutablePlugin.h */,
 				6522872F253B89B500E143D1 /* SExecutablePlugin.swift */,
 				A281BDB4189066DE00C380A4 /* ExecutablePlugin.m */,
@@ -757,6 +760,7 @@
 				AE7303ED1C93984C00AF5499 /* NSString+ANSI.m in Sources */,
 				055819781834172E00B44B00 /* LaunchAtLoginController.m in Sources */,
 				F8D03BB81C3D95E600A64968 /* AHProxySettings.m in Sources */,
+				65228740253CEC4500E143D1 /* SPlugin.swift in Sources */,
 				7B9A21681B9F0F10002539F7 /* DTTimePeriod.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
