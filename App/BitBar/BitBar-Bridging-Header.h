@@ -6,3 +6,6 @@
 #import "PluginManager.h"
 #import "NSTask+useSystemProxies.h"
 #import "NSUserDefaults+Settings.h"
+#import "NSString+Emojize.h"
+#import "NSString+ANSI.h"
+#import "NSColor+Hex.h"
