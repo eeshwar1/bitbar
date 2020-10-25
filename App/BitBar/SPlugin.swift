@@ -411,7 +411,6 @@ class SPlugin: NSObject, NSMenuDelegate {
     if (self.isMultiline) {
       
       // put all content as an item
-      let line: NSString = ""
       if (self.titleLines.count > 1) {
         for line in self.titleLines {
           let item: NSMenuItem? = self.buildMenuItemForLine(line: line as! String)
