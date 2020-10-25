@@ -42,7 +42,7 @@ class SPlugin: NSObject, NSMenuDelegate {
   var titleLines: [Any] = []
   var refreshIntervalSeconds: NSNumber = 0
   var lastUpdatedMenuItem: NSMenuItem?
-  var lastUpdated: Date = Date()
+  var lastUpdated: Date?
   var manager: PluginManager = PluginManager()
   
   // UI
@@ -81,7 +81,6 @@ class SPlugin: NSObject, NSMenuDelegate {
     self.cycleLinesIntervalSeconds = 5
     self.lastCommandWasError = false
     
-    
   }
 
   init(withManager manager: PluginManager) {
@@ -98,7 +97,6 @@ class SPlugin: NSObject, NSMenuDelegate {
     
   }
 
-  
   func attributedTitleWithParams(params: NSDictionary) -> NSAttributedString {
     
     var fullTitle: NSString = params["title"] as! NSString
@@ -134,7 +132,7 @@ class SPlugin: NSObject, NSMenuDelegate {
     let font: NSFont
     
     
-    if NSFont.responds(to: Selector(("monospacedDigitSystemFont:ofSize:weight:"))) {
+    if NSFont.responds(to: #selector(NSFont.monospacedDigitSystemFont)) {
       
       font = self.isFontValid(fontName: params["font"] as? String) ? NSFont(name: params["font"] as! String, size: size)! : NSFont.monospacedDigitSystemFont(ofSize: size, weight: NSFont.Weight.regular)
     }
@@ -197,6 +195,8 @@ class SPlugin: NSObject, NSMenuDelegate {
     let bashParamStd = bashParam.standardizingPath as NSString
     let bashParamStdSym = bashParamStd.resolvingSymlinksInPath as NSString
     
+    let bash = bashParamStdSym
+    
     var param1 = params["param1"] as? NSString
     var param2 = params["param2"] as? NSString
     var param3 = params["param3"] as? NSString
@@ -210,45 +210,45 @@ class SPlugin: NSObject, NSMenuDelegate {
     param4 = param4 != nil ? param4 : ""
     param5 = param5 != nil ? param5 : ""
     
-    let args: NSArray = params["args"] 
+    var args: NSArray = []
+    
+    if let argsArray = params["args"] as? NSArray {
+      args = argsArray
+    }
+    else {
+      let argArray :NSMutableArray = []
+      
+      for i in 1...6 {
+        if let paramArg = params["param\(i)"] {
+          argArray.add(paramArg)
+        }
+      }
+      args = argArray
+    }
 
     
     terminal = (terminal != nil) ? terminal : "true"
  
-    
-//      NSString *bash = [params[@"bash"] stringByStandardizingPath].stringByResolvingSymlinksInPath,
-//             *param1 = params[@"param1"] ?: @"",
-//             *param2 = params[@"param2"] ?: @"",
-//             *param3 = params[@"param3"] ?: @"",
-//             *param4 = params[@"param4"] ?: @"",
-//             *param5 = params[@"param5"] ?: @"",
-//           *terminal = params[@"terminal"] ?: [NSString stringWithFormat:@"%s", "true"];
-//      NSArray *args = params[@"args"] ?: ({
-//
-//        NSMutableArray *argArray = @[].mutableCopy;
-//        for (int i = 1; i < 6; i ++) {
-//          id x = params[[NSString stringWithFormat:@"param%i", i]];
-//          if (x) [argArray addObject:x];
-//        }
-//        argArray.copy;
-//
-//      });
-//
-//      if([terminal isEqual: @"false"]){
-//        NSLog(@"Args: %@", args);
-//        [params setObject:bash forKey:@"bash"];
-//        [params setObject:args forKey:@"args"];
-//        [self performSelectorInBackground:@selector(startTask:) withObject:params];
-//      } else {
-//
-//        NSString *full_link = [NSString stringWithFormat:@"'%@' %@ %@ %@ %@ %@", bash, param1, param2, param3, param4, param5];
-//        NSString *s = [NSString stringWithFormat:@"tell application \"Terminal\" \n\
-//                   do script \"%@\" \n\
-//                   activate \n\
-//                   end tell", full_link];
-//        NSAppleScript *as = [NSAppleScript.alloc initWithSource: s];
-//        [as executeAndReturnError:nil];
-//      }
+    if (terminal == "false") {
+      NSLog("Args: \(args)")
+      params.setObject(bash, forKey: "bash" as NSCopying)
+      params.setObject(args, forKey: "args" as NSCopying)
+      self.performSelector(inBackground: #selector(startTask), with: params)
+    }
+    else {
+      
+      let fullLink: NSString = "'\(bash)' \(param1!) \(param2!) \(param3!) \(param4!) \(param5!)" as NSString
+      
+      let s: NSString = """
+      tell application \(terminal!) \n
+        do script \(fullLink) \n
+        activate
+      end tell
+      """ as NSString
+      let appleScript: NSAppleScript = NSAppleScript(source: s as String)!
+      appleScript.executeAndReturnError(nil)
+      
+    }
   }
 
   @objc func performMenuItemOpenTerminalAction(menuItem: NSMenuItem) {
@@ -259,7 +259,7 @@ class SPlugin: NSObject, NSMenuDelegate {
 
   func buildMenuItemForLine(line: String) -> NSMenuItem? {
 
-    return self.buildMenuItemWithParams(params: self.dictionaryForLine(line: line))
+    return self.buildMenuItemWithParams(params: self.dictionaryForLine(line: line as NSString))
   }
 
   func buildMenuItemWithParams(params: Dictionary<String, Any>) -> NSMenuItem? {
@@ -306,7 +306,6 @@ class SPlugin: NSObject, NSMenuDelegate {
     else if let _ = params["refresh"] as? NSString {
       sel = #selector(performRefreshNow)
     }
-    
   
     let item: NSMenuItem = NSMenuItem(title: title as String, action: sel, keyEquivalent: "")
     
@@ -319,7 +318,6 @@ class SPlugin: NSObject, NSMenuDelegate {
     if sel != nil {
       item.target = self
     }
-
     
     let paramANSI = params["href"] as! String
     
@@ -357,53 +355,138 @@ class SPlugin: NSObject, NSMenuDelegate {
 
   }
 
-  func dictionaryForLine(line: String) -> Dictionary<String, Any> {
+  func dictionaryForLine(line: NSString) -> Dictionary<String, Any> {
     
-//    // Find the title
-//    NSRange found = [line rangeOfString:@"|"];
-//    if (found.location == NSNotFound) return @{ @"title": line };
-//    NSString * title = [line substringToIndex:found.location];
-//    NSMutableDictionary * params = @{@"title":title}.mutableCopy;
-//
-//    // Find the parameters
-//    NSString * paramStr = [line substringFromIndex:found.location + found.length];
-//
-//    NSScanner* scanner = [NSScanner scannerWithString:paramStr];
-//    NSMutableCharacterSet* keyValueSeparator = [NSMutableCharacterSet characterSetWithCharactersInString:@"=:"];
-//    NSMutableCharacterSet* quoteSeparator = [NSMutableCharacterSet characterSetWithCharactersInString:@"\"'"];
-//
-//    while (![scanner isAtEnd]) {
-//      NSString *key = @""; NSString* value = @"";
-//      [scanner scanUpToCharactersFromSet:keyValueSeparator intoString:&key];
-//      [scanner scanCharactersFromSet:keyValueSeparator intoString:NULL];
-//
-//      if ([scanner scanCharactersFromSet:quoteSeparator intoString:NULL]) {
-//        [scanner scanUpToCharactersFromSet:quoteSeparator intoString:&value];
-//        [scanner scanCharactersFromSet:quoteSeparator intoString:NULL];
-//      } else {
-//        [scanner scanUpToString:@" " intoString:&value];
-//      }
-//
-//      // Remove extraneous spaces from key and value
-//      key = [key stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceCharacterSet]];
-//      value = [value stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceCharacterSet]];
-//      params[key] = value;
-//
-//      if([key isEqualToString:@"args"]){
-//        params[key] = [value componentsSeparatedByString:@"__"];
-//      }
-//    }
-//
-//    return params
-    let params: Dictionary<String, Any> = [:]
-    return params
+    // Find the title
+    let found: NSRange = line.range(of: "|")
+    
+    if found.location == NSNotFound {
+      return ["title": line]
+    }
+    
+    let title: NSString = line.substring(to: found.location) as NSString
+    let params: NSMutableDictionary = ["title": title]
+    
+    // Find the parameters
+    let paramStr: NSString = line.substring(from: found.location + found.length) as NSString
+    
+    let scanner: Scanner = Scanner(string: paramStr as String)
+    let keyValueSeparator: NSMutableCharacterSet = NSMutableCharacterSet(charactersIn: "=:")
+    let quoteSeparator = NSMutableCharacterSet(charactersIn: "\"'")
+    
+    while (!scanner.isAtEnd) {
+      
+      var key: NSString? = ""
+      var value: NSString? = ""
+      var dummyNULL: NSString? = ""
+      
+      scanner.scanUpToCharacters(from: keyValueSeparator as CharacterSet, into: &key)
+      scanner.scanUpToCharacters(from: quoteSeparator as CharacterSet, into: &dummyNULL)
+      
+      if scanner.scanCharacters(from: quoteSeparator as CharacterSet, into: &dummyNULL) {
+        
+        scanner.scanUpToCharacters(from: quoteSeparator as CharacterSet, into: &value)
+        scanner.scanCharacters(from: quoteSeparator as CharacterSet, into: &dummyNULL)
+      }
+      else {
+        scanner.scanUpTo(" ", into: &value)
+      }
+      
+      // Remove extraneous spaces from key and value
+      key = (key?.trimmingCharacters(in: .whitespaces))! as NSString
+      value = (value?.trimmingCharacters(in: .whitespaces))! as NSString
+      
+      params[key! as NSString] = value
+    }
+
+    return params as! Dictionary<String, Any>
   }
 
- 
-  
   func rebuildMenuForStatusItem(statusItem: NSStatusItem) {
     
-  
+    // build the menu
+    let menu: NSMenu = NSMenu()
+    menu.delegate = self
+    
+    if (self.isMultiline) {
+      
+      // put all content as an item
+      let line: NSString = ""
+      if (self.titleLines.count > 1) {
+        for line in self.titleLines {
+          let item: NSMenuItem? = self.buildMenuItemForLine(line: line as! String)
+          if let item = item {
+            menu.addItem(item)
+            
+          }
+         
+          // add the separator
+          menu.addItem(NSMenuItem.separator())
+        }
+        
+        // are there any allContentLines ?
+        
+        if self.allContentLines.count > 0 {
+          // put all content as an item
+          
+          for line in self.allContentLines {
+            
+            var lineStr = line as! NSString
+            if lineStr == "---" {
+              menu.addItem(NSMenuItem.separator())
+            }
+            else {
+              var submenu: NSMenu = menu
+              
+              while lineStr.hasPrefix("--") {
+                lineStr = lineStr.substring(from: 2) as NSString
+                
+                let lastItem: NSMenuItem = submenu.items.last!
+                
+                if lastItem.submenu == nil {
+                  
+                  lastItem.submenu = NSMenu()
+                  lastItem.submenu?.delegate = self
+                }
+                
+                submenu = lastItem.submenu!
+                
+                if lineStr == "---" {
+                  break
+                }
+                
+              }
+              
+              if lineStr == "---" {
+                submenu.addItem(NSMenuItem.separator())
+              }
+              else {
+                let item: NSMenuItem? = self.buildMenuItemForLine(line: lineStr as String)
+                if let item = item {
+                  submenu.addItem(item)
+                }
+              }
+            }
+            
+          }
+          menu.addItem(NSMenuItem.separator())
+        }
+      }
+      
+      if self.lastUpdated != nil {
+        self.lastUpdatedMenuItem = NSMenuItem(title: "Updated just now", action: nil, keyEquivalent: "")
+        menu.addItem(self.lastUpdatedMenuItem!)
+      }
+      
+    
+    }
+    
+    self.addAdditionalMenuItems(menu: menu)
+    self.addDefaultMenuItems(menu: menu)
+    
+    // set the menu
+    statusItem.menu = menu
+
   }
   
   func addAdditionalMenuItems(menu: NSMenu) {
@@ -415,7 +498,8 @@ class SPlugin: NSObject, NSMenuDelegate {
     self.manager.addHelperItems(to: menu, asSubMenu: menu.items.count>0)
   }
   
-  @objc func performRefreshNow() {
+  @objc func performRefreshNow()
+  {
     NSLog("Nothing to refresh in this plugin")
     
   }
@@ -464,4 +548,35 @@ class SPlugin: NSObject, NSMenuDelegate {
     return image
 
   }
+  
+  
+  @objc func startTask(params: NSMutableDictionary) {
+    
+    let rootParam = params["root"] as! NSString
+    
+    let taskItem = rootParam == "true" ? STPrivilegedTask() : Process()
+    
+    let task = taskItem as! Process
+    
+    task.launchPath = params["bash"] as? String
+    task.arguments = params["args"] as? [String]
+    
+    task.terminationHandler = { _ in
+      if params["refresh"] != nil {
+        self.performSelector(onMainThread: #selector(self.performRefreshNow), with: nil, waitUntilDone: false)
+      }
+      
+      do {
+        
+        try task.run()
+      }
+      catch {
+        
+        print("Error launching command for \(String(describing: self.name)): CMD: \(String(describing: params["bash"]))  ARGS:\(String(describing: params["args"]))")
+        
+      }
+      task.waitUntilExit()
+    }
+  }
+    
 }

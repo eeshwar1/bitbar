@@ -9,3 +9,4 @@
 #import "NSString+Emojize.h"
 #import "NSString+ANSI.h"
 #import "NSColor+Hex.h"
+#import "STPrivilegedTask.h"
